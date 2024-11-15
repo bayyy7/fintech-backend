@@ -248,7 +248,7 @@ func (a *accountImplement) createJWT(account *model.Account) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["id"] = account.Id
 	claims["username"] = account.Username
-	claims["exp"] = time.Now().Add(time.Hour * 2).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 6).Unix()
 
 	tokenString, err := token.SignedString(a.jwtKey)
 	if err != nil {

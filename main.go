@@ -81,15 +81,15 @@ func main() {
 			})
 		})
 		accountHandler := handlers.NewAccount(db, []byte(jwtKey))
-		accountRoutes := r.Group("/account")
+		accountRoutes := v1.Group("/account")
 		{
-			accountRoutes.POST("login/admin", accountHandler.AccountAdminLogin) // Restricted to admin login
-			accountRoutes.POST("login/user", accountHandler.AccountUserLogin)
-			accountRoutes.POST("signup", middleware.AuthJWTMiddleware(jwtKey), accountHandler.AccountSignUp)
-			accountRoutes.POST("change-password", middleware.AuthJWTMiddleware(jwtKey), accountHandler.ChangePassword)
+			accountRoutes.POST("/login/admin", accountHandler.AccountAdminLogin) // Restricted to admin login
+			accountRoutes.POST("/login/user", accountHandler.AccountUserLogin)
+			accountRoutes.POST("/signup", accountHandler.AccountSignUp)
+			accountRoutes.POST("/change-password", middleware.AuthJWTMiddleware(jwtKey), accountHandler.ChangePassword)
 		}
 		userHandler := handlers.NewUser(db)
-		userRoutes := r.Group("/user")
+		userRoutes := v1.Group("/user")
 		{
 			userRoutes.GET("/profile", middleware.AuthJWTMiddleware(jwtKey), userHandler.Profile)
 			userRoutes.GET("/mutation/transaction", middleware.AuthJWTMiddleware(jwtKey), userHandler.TransactionHistory)
@@ -98,7 +98,7 @@ func main() {
 			userRoutes.POST("/register/deposit", middleware.AuthJWTMiddleware(jwtKey), userHandler.RegisterDeposit)
 		}
 		adminHandler := handlers.NewAdmin(db)
-		adminRoutes := r.Group("/admin")
+		adminRoutes := v1.Group("/admin")
 		{
 			adminRoutes.GET("/list/user", adminHandler.ListUserProfile)
 			adminRoutes.GET("/list/user/:id", adminHandler.DetailUser)

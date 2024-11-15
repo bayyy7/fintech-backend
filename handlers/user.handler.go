@@ -37,7 +37,7 @@ func (a *userImplement) Profile(ctx *gin.Context) {
 	id := ctx.GetInt64("id")
 	var user model.User
 
-	if err := a.db.Where("role = ? AND account_id = ?", 0, id).First(&user).Error; err != nil {
+	if err := a.db.Where("account_id = ?", id).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Not found",
@@ -90,12 +90,11 @@ func (a *userImplement) DepositHistory(ctx *gin.Context) {
 }
 
 type ProfilePayload struct {
-	Address       string    `json:"address"`
-	Id_Card       int64     `json:"id_card"`
-	Mothers_Name  string    `json:"mothers_name"`
-	Date_of_Birth time.Time `json:"date_of_birth"`
-	Gender        string    `json:"gender"`
-	Balance       int64     `json:"balance"`
+	Address       string `json:"address"`
+	Id_Card       int64  `json:"id_card"`
+	Mothers_Name  string `json:"mothers_name"`
+	Date_of_Birth string `json:"date_of_birth"`
+	Gender        string `json:"gender"`
 }
 
 func (a *userImplement) EditProfile(ctx *gin.Context) {
@@ -110,7 +109,7 @@ func (a *userImplement) EditProfile(ctx *gin.Context) {
 	}
 
 	var user model.User
-	if err := a.db.Where("role = ? AND account_id = ?", 0, id).First(&user).Error; err != nil {
+	if err := a.db.Where("account_id = ?", id).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "user not found",
@@ -144,11 +143,11 @@ func (a *userImplement) EditProfile(ctx *gin.Context) {
 }
 
 type DepositPayload struct {
-	Deposit_Id string `json:"deposit_id" binding:"required"`
-	Account_Id int64  `json:"account_id"`
-	Name       string `json:"name"`
-	Amount     int64  `json:"amount"`
-	Min_Month  int    `json:"min_amount"`
+	Deposito_Id string `json:"deposito_id" binding:"required"`
+	Account_Id  string `json:"account_id"`
+	Name        string `json:"name"`
+	Amount      int64  `json:"amount"`
+	Min_Month   int    `json:"min_month"`
 }
 
 func (a *userImplement) RegisterDeposit(ctx *gin.Context) {
@@ -160,23 +159,23 @@ func (a *userImplement) RegisterDeposit(ctx *gin.Context) {
 		return
 	}
 
-	switch payload.Deposit_Id {
+	switch payload.Deposito_Id {
 	case "mini":
-		if payload.Amount < 100000 && payload.Amount > 10000000 {
+		if payload.Amount < 100000 || payload.Amount > 10000000 {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"message": "amount not acceptable",
 			})
 			return
 		}
 	case "maxi":
-		if payload.Amount < 100000 && payload.Amount > 1000000000 {
+		if payload.Amount < 100000 || payload.Amount > 1000000000 {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"message": "amount not acceptable",
 			})
 			return
 		}
 	case "great":
-		if payload.Amount < 1000000000 && payload.Amount > 9999999999 {
+		if payload.Amount < 1000000000 || payload.Amount > 9999999999 {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"message": "amount not acceptable",
 			})
@@ -191,7 +190,7 @@ func (a *userImplement) RegisterDeposit(ctx *gin.Context) {
 
 	id := ctx.GetInt64("id")
 	var user model.User
-	if err := a.db.Where("role = ? AND account_id = ?", 0, id).First(&user).Error; err != nil {
+	if err := a.db.Where("account_id = ?", id).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "user not found",
@@ -252,7 +251,7 @@ func (a *userImplement) RegisterDeposit(ctx *gin.Context) {
 	}
 
 	newDepositHistory := model.DepositHistory{
-		Deposit_Id:   payload.Deposit_Id,
+		Deposit_Id:   payload.Deposito_Id,
 		Account_Id:   id,
 		Deposit_Name: payload.Name,
 		Amount:       payload.Amount,
@@ -307,7 +306,7 @@ func (a *userImplement) RegisterDeposit(ctx *gin.Context) {
 func (a *userImplement) PersonalDeposit(ctx *gin.Context) {
 	id := ctx.GetInt64("id")
 	var user model.User
-	if err := a.db.Where("role = ? AND account_id = ?", 0, id).First(&user).Error; err != nil {
+	if err := a.db.Where("account_id = ?", id).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "user not found",
