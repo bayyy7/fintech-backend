@@ -9,7 +9,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type AccountInterface interface {
@@ -157,10 +156,17 @@ func (a *accountImplement) AccountSignUp(ctx *gin.Context) {
 		Role:     0,
 	}
 
-	resultAccount := a.db.Create(&newAccount)
-	if resultAccount.Error != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": resultAccount.Error.Error(),
+	tx := a.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Create(&newAccount).Error; err != nil {
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
@@ -170,10 +176,18 @@ func (a *accountImplement) AccountSignUp(ctx *gin.Context) {
 		Name:       payload.Name,
 	}
 
-	resultUser := a.db.Create(&newUser)
-	if resultUser.Error != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": resultUser.Error.Error(),
+	if err := tx.Create(&newUser).Error; err != nil {
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
@@ -224,21 +238,21 @@ func (a *accountImplement) ChangePassword(ctx *gin.Context) {
 
 	account.Password = string(hashed)
 
-	result := a.db.Clauses(
-		clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"password"}),
-			Columns:   []clause.Column{{Name: "account_id"}},
-		}).Create(&account)
-	if result.Error != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": result.Error.Error(),
+	if err := a.db.Model(&account).Where("id = ?", id).Update("password", string(hashed)).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "success",
-		"data":    account,
 	})
 }
 

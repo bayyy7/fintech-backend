@@ -45,7 +45,7 @@ func (a *adminImplement) DetailUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	var user model.User
 
-	if err := a.db.First(&user, id).Where("role = ?", 0).Error; err != nil {
+	if err := a.db.First(&user, "account_id = ?", id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Not found",

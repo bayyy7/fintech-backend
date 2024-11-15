@@ -242,21 +242,13 @@ func (a *userImplement) RegisterDeposit(ctx *gin.Context) {
 		return
 	}
 
-	currentDate, err := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
 	newDepositHistory := model.DepositHistory{
 		Deposit_Id:   payload.Deposito_Id,
 		Account_Id:   id,
 		Deposit_Name: payload.Name,
 		Amount:       payload.Amount,
 		Time_Period:  payload.Min_Month,
-		Time_Stamp:   currentDate,
+		Time_Stamp:   time.Now(),
 	}
 
 	newTransactionHistory := model.TransactionHistory{
