@@ -85,7 +85,8 @@ func main() {
 		{
 			accountRoutes.POST("/login/admin", accountHandler.AccountAdminLogin) // Restricted to admin login
 			accountRoutes.POST("/login/user", accountHandler.AccountUserLogin)
-			accountRoutes.POST("/signup", accountHandler.AccountSignUp)
+			accountRoutes.POST("/signup/admin", accountHandler.AccountAdminSignup)
+			accountRoutes.POST("/signup/user", accountHandler.AccountUserSignup)
 			accountRoutes.POST("/change-password", middleware.AuthJWTMiddleware(jwtKey), accountHandler.ChangePassword)
 		}
 		userHandler := handlers.NewUser(db)
@@ -100,10 +101,10 @@ func main() {
 		adminHandler := handlers.NewAdmin(db)
 		adminRoutes := v1.Group("/admin")
 		{
-			adminRoutes.GET("/list/user", adminHandler.ListUserProfile)
-			adminRoutes.GET("/list/user/:id", adminHandler.DetailUser)
-			adminRoutes.GET("/list/deposit/mutation", adminHandler.ListUserDeposito)
-			adminRoutes.POST("/topup", adminHandler.TopUpUser)
+			adminRoutes.GET("/list/user", middleware.AuthJWTMiddleware(jwtKey), adminHandler.ListUserProfile)
+			adminRoutes.GET("/list/user/:id", middleware.AuthJWTMiddleware(jwtKey), adminHandler.DetailUser)
+			adminRoutes.GET("/list/deposit/mutation", middleware.AuthJWTMiddleware(jwtKey), adminHandler.ListUserDeposito)
+			adminRoutes.POST("/topup", middleware.AuthJWTMiddleware(jwtKey), adminHandler.TopUpUser)
 		}
 
 	}

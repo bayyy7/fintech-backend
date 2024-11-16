@@ -14,7 +14,8 @@ import (
 type AccountInterface interface {
 	AccountUserLogin(*gin.Context)
 	AccountAdminLogin(*gin.Context)
-	AccountSignUp(*gin.Context)
+	AccountUserSignup(*gin.Context)
+	AccountAdminSignup(*gin.Context)
 	ChangePassword(*gin.Context)
 }
 
@@ -125,7 +126,79 @@ type SignUpPayload struct {
 	Name     string `json:"name"`
 }
 
-func (a *accountImplement) AccountSignUp(ctx *gin.Context) {
+func (a *accountImplement) AccountAdminSignup(ctx *gin.Context) {
+	payload := SignUpPayload{}
+
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	existingUser := model.Account{}
+	if result := a.db.Where("username = ? AND role = ?", payload.Username, 1).First(&existingUser); result.RowsAffected > 0 {
+		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
+			"error": "username already exist",
+		})
+		return
+	}
+
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err,
+		})
+	}
+
+	newAccount := model.Account{
+		Username: payload.Username,
+		Password: string(hashPassword),
+		Role:     1,
+	}
+
+	tx := a.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Create(&newAccount).Error; err != nil {
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	newAdmin := model.Admin{
+		Account_Id: newAccount.Id,
+		Name:       payload.Name,
+	}
+
+	if err := tx.Create(&newAdmin).Error; err != nil {
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "success",
+	})
+}
+
+func (a *accountImplement) AccountUserSignup(ctx *gin.Context) {
 	payload := SignUpPayload{}
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {

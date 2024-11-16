@@ -6,7 +6,8 @@
 |-----------------------------|--------|----------------|---------------------------|--------------------------|
 | `/v1/account/login/admin`   | POST   | ❌             | `username`, `password`    | `token`                  |
 | `/v1/account/login/user`    | POST   | ❌             | `username`, `password`    | `token`                  |
-| `/v1/account/signup`        | POST   | ❌             | `username`, `password`, `name` | `message`             |
+| `/v1/account/signup/admin`  | POST   | ❌             | `username`, `password`, `name` | `message`             |
+| `/v1/account/signup/user`   | POST   | ❌             | `username`, `password`, `name` | `message`             |
 | `/v1/account/change-password` | POST | ✅             | `(new) password`          | `message` and `account data` |
 
 ## User APIs
@@ -23,10 +24,10 @@
 
 | API                         | Method | Token Required | Request                   | Response                |
 |-----------------------------|--------|----------------|---------------------------|--------------------------|
-| `/v1/admin/list/user`       | GET    | ❌             | -                         | `list all users`        |
-| `/v1/admin/list/user/:id`   | GET    | ❌             | -                         | `user data based on ID` |
-| `/v1/admin/list/deposit/mutation` | GET | ❌          | -                         | `list all deposit mutations` |
-| `/v1/admin/topup`           | POST   | ❌             | `username`, `amount`      | `message` and `user balance` |
+| `/v1/admin/list/user`       | GET    | ✅             | -                         | `list all users`        |
+| `/v1/admin/list/user/:id`   | GET    | ✅             | -                         | `user data based on ID` |
+| `/v1/admin/list/deposit/mutation` | GET | ✅          | -                         | `list all deposit mutations` |
+| `/v1/admin/topup`           | POST   | ✅             | `username`, `amount`      | `message` and `user balance` |
 
 ---
 
